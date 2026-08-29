@@ -27,8 +27,11 @@ jobs:
           lfs: true
           fetch-depth: 1
 
-      - name: Generate catalog
+      - name: Generate static catalog
         run: python3 tools/build-catalog.py
+
+      - name: Generate lightweight static thumbnails
+        run: python3 tools/build-thumbnails.py
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
