@@ -30,6 +30,9 @@ jobs:
       - name: Generate static catalog
         run: python3 tools/build-catalog.py
 
+      - name: Generate static search index
+        run: python3 tools/build-search-index.py
+
       - name: Generate lightweight static thumbnails
         run: python3 tools/build-thumbnails.py
 
