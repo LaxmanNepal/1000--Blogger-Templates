@@ -36,13 +36,16 @@ jobs:
       - name: Generate lightweight static thumbnails
         run: python3 tools/build-thumbnails.py
 
+      - name: Prepare minimal static site
+        run: python3 tools/prepare-site.py
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
-      - name: Upload site
+      - name: Upload static site only
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: dist
 
       - name: Deploy
         id: deployment
