@@ -39,6 +39,22 @@ jobs:
       - name: Prepare minimal static site
         run: python3 tools/prepare-site.py
 
+      - name: Validate production site
+        run: |
+          test -f dist/index.html
+          test -f dist/app-fast.js
+          test -f dist/styles.css
+          test -f dist/catalog.json
+          test -f dist/search-index.json
+          test -d dist/generated/thumbnails
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path('dist/catalog.json').read_text())
+          assert d.get('templates'), 'catalog is empty'
+          print(f"Validated {len(d['templates'])} templates")
+          PY
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
