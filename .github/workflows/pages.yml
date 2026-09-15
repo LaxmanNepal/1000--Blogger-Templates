@@ -27,13 +27,18 @@ jobs:
           lfs: true
           fetch-depth: 1
 
+      - name: Install browser renderer
+        run: |
+          python3 -m pip install --disable-pip-version-check playwright
+          python3 -m playwright install --with-deps chromium
+
       - name: Generate static catalog
         run: python3 tools/build-catalog.py
 
       - name: Generate static search index
         run: python3 tools/build-search-index.py
 
-      - name: Generate lightweight static thumbnails
+      - name: Generate real visual snapshots
         run: python3 tools/build-thumbnails.py
 
       - name: Prepare minimal static site
@@ -52,7 +57,10 @@ jobs:
           from pathlib import Path
           d=json.loads(Path('dist/catalog.json').read_text())
           assert d.get('templates'), 'catalog is empty'
-          print(f"Validated {len(d['templates'])} templates")
+          count=len(d['templates'])
+          images=list(Path('dist/generated/thumbnails').glob('*.jpg'))+list(Path('dist/generated/thumbnails').glob('*.svg'))
+          assert len(images) >= count, f'Only {len(images)} snapshots for {count} templates'
+          print(f'Validated {count} templates and {len(images)} snapshot assets')
           PY
 
       - name: Configure Pages
