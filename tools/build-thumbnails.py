@@ -37,7 +37,6 @@ async def one(browser,item,sem):
             return True
         except Exception as e:
             print(f"Snapshot failed: {item['name']}: {e}")
-            # Keep a valid fallback image so every card has a snapshot asset.
             svg=f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500"><rect width="800" height="500" fill="#f3f4f6"/><rect x="30" y="30" width="740" height="440" rx="22" fill="#fff"/><rect x="30" y="30" width="740" height="70" rx="22" fill="#111827"/><text x="55" y="165" font-family="Arial" font-size="26" font-weight="700" fill="#111827">{esc(item["name"][:48])}</text><text x="55" y="205" font-family="Arial" font-size="16" fill="#667085">Snapshot unavailable — open live preview</text></svg>'
             (OUT/f"{item['id']}.svg").write_text(svg)
             return False
@@ -46,7 +45,8 @@ async def main():
     items=json.loads(CAT.read_text()).get('templates',[])
     async with async_playwright() as p:
         browser=await p.chromium.launch()
-        results=await asyncio.gather(*(one(browser,x,asyncio.Semaphore(4)) for x in items))
+        sem=asyncio.Semaphore(4)
+        results=await asyncio.gather(*(one(browser,x,sem) for x in items))
         await browser.close()
     print(f'Generated {sum(results)} real snapshots out of {len(items)} templates')
 
