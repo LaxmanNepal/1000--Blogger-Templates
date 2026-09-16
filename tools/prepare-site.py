@@ -8,7 +8,7 @@ DIST.mkdir()
 for name in ('index.html','styles.css','app-fast.js','sw.js'):
     src=ROOT/name
     if src.exists(): shutil.copy2(src,DIST/name)
-for name in ('catalog.json','search-index.json'):
+for name in ('catalog.json','search-index.json','snapshot-report.json'):
     src=ROOT/'generated'/name
     if src.exists(): shutil.copy2(src,DIST/name)
 thumbs=ROOT/'generated'/'thumbnails'
