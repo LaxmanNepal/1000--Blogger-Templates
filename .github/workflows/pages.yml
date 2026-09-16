@@ -38,29 +38,36 @@ jobs:
       - name: Generate static search index
         run: python3 tools/build-search-index.py
 
-      - name: Generate real visual snapshots
+      - name: Generate and quality-check visual snapshots
         run: python3 tools/build-thumbnails.py
 
       - name: Prepare minimal static site
         run: python3 tools/prepare-site.py
 
-      - name: Validate production site
+      - name: Validate production site and snapshot quality
         run: |
           test -f dist/index.html
           test -f dist/app-fast.js
           test -f dist/styles.css
           test -f dist/catalog.json
           test -f dist/search-index.json
+          test -f dist/generated/snapshot-report.json
           test -d dist/generated/thumbnails
           python3 - <<'PY'
           import json
           from pathlib import Path
-          d=json.loads(Path('dist/catalog.json').read_text())
-          assert d.get('templates'), 'catalog is empty'
-          count=len(d['templates'])
-          images=list(Path('dist/generated/thumbnails').glob('*.jpg'))+list(Path('dist/generated/thumbnails').glob('*.svg'))
-          assert len(images) >= count, f'Only {len(images)} snapshots for {count} templates'
-          print(f'Validated {count} templates and {len(images)} snapshot assets')
+          catalog=json.loads(Path('dist/catalog.json').read_text())
+          report=json.loads(Path('dist/generated/snapshot-report.json').read_text())
+          assert catalog.get('templates'), 'catalog is empty'
+          count=len(catalog['templates'])
+          assert report.get('total') == count, f"Report covers {report.get('total')} of {count} templates"
+          real=report.get('real_snapshots',0)
+          fallback=report.get('fallback_snapshots',0)
+          assets=list(Path('dist/generated/thumbnails').glob('*.jpg'))+list(Path('dist/generated/thumbnails').glob('*.svg'))
+          assert len(assets) >= count, f'Only {len(assets)} snapshot assets for {count} templates'
+          minimum=int(count*0.95)
+          assert real >= minimum, f'Only {real}/{count} real snapshots; need at least {minimum}'
+          print(f'Validated {count} templates: {real} real snapshots, {fallback} fallbacks')
           PY
 
       - name: Configure Pages
