@@ -47,8 +47,12 @@ jobs:
       - name: Validate production site and snapshot quality
         run: |
           test -f dist/index.html
-          test -f dist/app-fast.js
           test -f dist/styles.css
+          test -f dist/app-fast.js
+          test -f dist/sw.js
+          test -f dist/404.html
+          test -f dist/manifest.webmanifest
+          test -f dist/robots.txt
           test -f dist/catalog.json
           test -f dist/search-index.json
           test -f dist/generated/snapshot-report.json
@@ -58,16 +62,19 @@ jobs:
           from pathlib import Path
           catalog=json.loads(Path('dist/catalog.json').read_text())
           report=json.loads(Path('dist/generated/snapshot-report.json').read_text())
+          manifest=json.loads(Path('dist/manifest.webmanifest').read_text())
           assert catalog.get('templates'), 'catalog is empty'
           count=len(catalog['templates'])
           assert report.get('total') == count, f"Report covers {report.get('total')} of {count} templates"
+          assert manifest.get('start_url') == './'
+          assert manifest.get('display') == 'standalone'
           real=report.get('real_snapshots',0)
           fallback=report.get('fallback_snapshots',0)
           assets=list(Path('dist/generated/thumbnails').glob('*.jpg'))+list(Path('dist/generated/thumbnails').glob('*.svg'))
           assert len(assets) >= count, f'Only {len(assets)} snapshot assets for {count} templates'
           minimum=int(count*0.95)
           assert real >= minimum, f'Only {real}/{count} real snapshots; need at least {minimum}'
-          print(f'Validated {count} templates: {real} real snapshots, {fallback} fallbacks')
+          print(f'Validated {count} templates: {real} real snapshots, {fallback} fallbacks; PWA metadata OK')
           PY
 
       - name: Configure Pages
